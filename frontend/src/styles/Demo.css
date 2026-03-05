@@ -1,0 +1,145 @@
+.demo-landing {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    display: flex;
+    flex-direction: column;
+}
+
+.demo-hero {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 24px;
+}
+
+.demo-hero-content {
+    max-width: 680px;
+    text-align: center;
+    color: white;
+}
+
+.demo-hero-content h1 {
+    font-size: 3rem;
+    font-weight: 800;
+    margin-bottom: 16px;
+    background: linear-gradient(135deg, #667eea, #a78bfa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.demo-tagline {
+    font-size: 1.2rem;
+    color: rgba(255,255,255,0.75);
+    margin-bottom: 40px;
+    line-height: 1.6;
+}
+
+.demo-features {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 40px;
+    text-align: left;
+}
+
+.demo-feature {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 16px;
+}
+
+.demo-feature span { font-size: 1.5rem; flex-shrink: 0; }
+.demo-feature strong { display: block; color: white; margin-bottom: 4px; }
+.demo-feature p { color: rgba(255,255,255,0.6); font-size: 0.85rem; margin: 0; }
+
+.demo-cta {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.demo-btn-primary {
+    padding: 16px 36px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 1.05rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.2s, opacity 0.2s;
+}
+
+.demo-btn-primary:hover { transform: translateY(-2px); }
+.demo-btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+.demo-btn-secondary {
+    padding: 16px 36px;
+    background: transparent;
+    color: white;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-radius: 12px;
+    font-size: 1.05rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+}
+
+.demo-btn-secondary:hover {
+    border-color: rgba(255,255,255,0.6);
+    background: rgba(255,255,255,0.05);
+}
+
+.demo-error {
+    color: #f87171;
+    margin-top: 12px;
+    font-size: 0.9rem;
+}
+
+.demo-note {
+    font-size: 0.8rem;
+    color: rgba(255,255,255,0.4);
+    margin-top: 8px;
+}
+
+.demo-stack {
+    padding: 24px;
+    text-align: center;
+    border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+.demo-stack h3 {
+    color: rgba(255,255,255,0.4);
+    font-size: 0.85rem;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.demo-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+}
+
+.demo-badge {
+    padding: 4px 12px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 20px;
+    color: rgba(255,255,255,0.6);
+    font-size: 0.8rem;
+}
+
+@media (max-width: 600px) {
+    .demo-hero-content h1 { font-size: 2rem; }
+    .demo-features { grid-template-columns: 1fr; }
+}
