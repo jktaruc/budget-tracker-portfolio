@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from "react";
-import { Link } from "react-router-dom";
 import api from "../api/api";
 import CategorySelect from "../components/CategorySelect";
 import { useCategories } from "../hooks/useCategories";
@@ -22,7 +21,6 @@ interface FormState {
 export default function SpendingLimitsPage() {
     const [limits, setLimits] = useState<SpendingLimit[]>([]);
     const [loading, setLoading] = useState(true);
-    const [paywalled, setPaywalled] = useState(false);
     const [showForm, setShowForm] = useState(false);
     const [form, setForm] = useState<FormState>({
         category: "Food", limitAmount: "", period: "MONTHLY",
@@ -36,9 +34,8 @@ export default function SpendingLimitsPage() {
         try {
             const { data } = await api.get<SpendingLimit[]>("/spending-limits");
             setLimits(data);
-        } catch (err: any) {
-            if (err?.response?.status === 402) setPaywalled(true);
-            else console.error("Failed to fetch spending limits", err);
+        } catch (err) {
+            console.error("Failed to fetch spending limits", err);
         } finally {
             setLoading(false);
         }
@@ -46,6 +43,7 @@ export default function SpendingLimitsPage() {
 
     useEffect(() => { fetchLimits(); }, [fetchLimits]);
 
+    // Keep category in sync if categories load after form init
     useEffect(() => {
         if (categories.length > 0 && !categories.includes(form.category)) {
             setForm(p => ({ ...p, category: categories[0] }));
@@ -85,18 +83,9 @@ export default function SpendingLimitsPage() {
         return "#22c55e";
     };
 
-    if (loading) return <div className="loading">Loading spending limits...</div>;
+    
 
-    if (paywalled) return (
-        <div className="page-container">
-            <div className="summary-paywall">
-                <div className="summary-paywall-icon">💳</div>
-                <h2>Spending Limits is a Pro feature</h2>
-                <p>Set category budgets and get alerted when you're approaching your limits.</p>
-                <Link to="/billing" className="summary-paywall-btn">Upgrade to Pro</Link>
-            </div>
-        </div>
-    );
+    if (loading) return <div className="loading">Loading spending limits...</div>;
 
     return (
         <div className="page-container">

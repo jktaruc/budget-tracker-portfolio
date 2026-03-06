@@ -17,22 +17,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class DemoController {
 
     private final DemoDataService demoDataService;
-    private final AuthService     authService;
+    private final AuthService authService;
 
-    /** Resets the FREE demo account and returns a JWT. */
     @PostMapping("/reset")
-    public ResponseEntity<AuthDTO.AuthResponse> resetFreeAndLogin() {
-        String email = demoDataService.resetFreeDemo();
-        AuthDTO.AuthResponse tokens = authService.login(
-                new AuthDTO.LoginRequest(email, "demo1234")
-        );
-        return ResponseEntity.ok(tokens);
-    }
-
-    /** Resets the PRO demo account and returns a JWT. */
-    @PostMapping("/reset-pro")
-    public ResponseEntity<AuthDTO.AuthResponse> resetProAndLogin() {
-        String email = demoDataService.resetProDemo();
+    public ResponseEntity<AuthDTO.AuthResponse> resetAndLogin() {
+        String email = demoDataService.resetDemo();
         AuthDTO.AuthResponse tokens = authService.login(
                 new AuthDTO.LoginRequest(email, "demo1234")
         );

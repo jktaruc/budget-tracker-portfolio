@@ -33,7 +33,6 @@ public class SecurityConfig {
                     "/api/auth/**",
                     "/api/demo/**",
                     "/api/import/template",
-                    "/api/stripe/webhook",
                     "/actuator/health"
                 ).permitAll()
                 // Swagger / OpenAPI docs are open — no sensitive data exposed

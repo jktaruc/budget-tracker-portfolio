@@ -2,8 +2,9 @@ package com.budgettracker.backend.controller;
 
 import com.budgettracker.backend.entity.RecurringTransaction;
 import com.budgettracker.backend.service.RecurringTransactionService;
-import com.budgettracker.backend.service.SubscriptionService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -16,39 +17,34 @@ import java.util.List;
 @RequiredArgsConstructor
 public class RecurringTransactionController {
 
-    private final RecurringTransactionService recurringService;
-    private final SubscriptionService         subscriptionService;
+    private final RecurringTransactionService recurringTransactionService;
 
     @GetMapping
-    public ResponseEntity<List<RecurringTransaction>> getAll(
-            @AuthenticationPrincipal UserDetails userDetails) {
-        subscriptionService.requirePro(userDetails.getUsername(), "Recurring Transactions");
-        return ResponseEntity.ok(recurringService.getByUser(userDetails.getUsername()));
+    public List<RecurringTransaction> getAll(@AuthenticationPrincipal UserDetails userDetails) {
+        return recurringTransactionService.getByUser(userDetails.getUsername());
     }
 
     @PostMapping
     public ResponseEntity<RecurringTransaction> create(
-            @RequestBody RecurringTransaction rt,
-            @AuthenticationPrincipal UserDetails userDetails) {
-        subscriptionService.requirePro(userDetails.getUsername(), "Recurring Transactions");
-        return ResponseEntity.ok(recurringService.create(rt, userDetails.getUsername()));
+            @AuthenticationPrincipal UserDetails userDetails,
+            @Valid @RequestBody RecurringTransaction rt) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(recurringTransactionService.create(rt, userDetails.getUsername()));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<RecurringTransaction> update(
+            @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable String id,
-            @RequestBody RecurringTransaction rt,
-            @AuthenticationPrincipal UserDetails userDetails) {
-        subscriptionService.requirePro(userDetails.getUsername(), "Recurring Transactions");
-        return ResponseEntity.ok(recurringService.update(id, rt, userDetails.getUsername()));
+            @Valid @RequestBody RecurringTransaction rt) {
+        return ResponseEntity.ok(recurringTransactionService.update(id, rt, userDetails.getUsername()));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(
-            @PathVariable String id,
-            @AuthenticationPrincipal UserDetails userDetails) {
-        subscriptionService.requirePro(userDetails.getUsername(), "Recurring Transactions");
-        recurringService.delete(id, userDetails.getUsername());
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable String id) {
+        recurringTransactionService.delete(id, userDetails.getUsername());
         return ResponseEntity.noContent().build();
     }
 }

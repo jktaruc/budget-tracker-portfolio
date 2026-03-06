@@ -17,97 +17,59 @@ import java.util.List;
 @RequiredArgsConstructor
 public class DemoDataService {
 
-    static final String DEMO_FREE_EMAIL = "demo@budgettracker.com";
-    static final String DEMO_PRO_EMAIL  = "demo-pro@budgettracker.com";
-    private static final String DEMO_PASSWORD   = "demo1234";
+    private static final String DEMO_EMAIL    = "demo@budgettracker.com";
+    private static final String DEMO_NAME     = "Demo User";
+    private static final String DEMO_PASSWORD = "demo1234";
 
-    private final UserRepository                  userRepository;
-    private final ExpenseRepository               expenseRepository;
-    private final IncomeRepository                incomeRepository;
-    private final SpendingLimitRepository         spendingLimitRepository;
-    private final RecurringTransactionRepository  recurringRepo;
-    private final CategoryRepository              categoryRepository;
-    private final SubscriptionRepository          subscriptionRepository;
-    private final PasswordEncoder                 passwordEncoder;
-
-    // ── Public reset methods ──────────────────────────────────────────────────
+    private final UserRepository userRepository;
+    private final ExpenseRepository expenseRepository;
+    private final IncomeRepository incomeRepository;
+    private final SpendingLimitRepository spendingLimitRepository;
+    private final RecurringTransactionRepository recurringRepo;
+    private final CategoryRepository categoryRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional
-    public String resetFreeDemo() {
-        User demo = getOrCreateUser(DEMO_FREE_EMAIL, "Demo User (Free)");
-        clearUserData(demo);
-        seedTransactions(demo);
-        ensureSubscription(demo, Subscription.Plan.FREE);
-        log.info("Free demo reset for: {}", DEMO_FREE_EMAIL);
-        return DEMO_FREE_EMAIL;
-    }
-
-    @Transactional
-    public String resetProDemo() {
-        User demo = getOrCreateUser(DEMO_PRO_EMAIL, "Demo User (Pro)");
-        clearUserData(demo);
-        seedTransactions(demo);
-        seedBudgetGoals(demo);
-        seedRecurring(demo, LocalDate.now());
-        ensureSubscription(demo, Subscription.Plan.PRO);
-        log.info("Pro demo reset for: {}", DEMO_PRO_EMAIL);
-        return DEMO_PRO_EMAIL;
-    }
-
-    // ── Helpers ───────────────────────────────────────────────────────────────
-
-    private User getOrCreateUser(String email, String name) {
-        return userRepository.findByEmail(email).orElseGet(() -> {
+    public String resetDemo() {
+        User demo = userRepository.findByEmail(DEMO_EMAIL).orElseGet(() -> {
             User u = new User();
-            u.setEmail(email);
-            u.setName(name);
+            u.setEmail(DEMO_EMAIL);
+            u.setName(DEMO_NAME);
             u.setPassword(passwordEncoder.encode(DEMO_PASSWORD));
             u.setRole(User.Role.USER);
             return userRepository.save(u);
         });
-    }
 
-    private void clearUserData(User user) {
-        spendingLimitRepository.deleteAllInBatch(spendingLimitRepository.findByUserId(user.getId()));
-        recurringRepo.deleteAllInBatch(recurringRepo.findByUserId(user.getId()));
-        expenseRepository.deleteByUserId(user.getId());
-        incomeRepository.deleteByUserId(user.getId());
-        categoryRepository.deleteAllInBatch(categoryRepository.findByUserId(user.getId()));
-    }
+        spendingLimitRepository.deleteAllInBatch(spendingLimitRepository.findByUserId(demo.getId()));
+        recurringRepo.deleteAllInBatch(recurringRepo.findByUserId(demo.getId()));
+        expenseRepository.deleteByUserId(demo.getId());
+        incomeRepository.deleteByUserId(demo.getId());
+        categoryRepository.deleteAllInBatch(categoryRepository.findByUserId(demo.getId()));
 
-    private void ensureSubscription(User user, Subscription.Plan plan) {
-        Subscription sub = subscriptionRepository.findByUserId(user.getId())
-                .orElseGet(() -> {
-                    Subscription s = new Subscription();
-                    s.setUser(user);
-                    return s;
-                });
-        sub.setPlan(plan);
-        sub.setStatus(Subscription.Status.ACTIVE);
-        subscriptionRepository.save(sub);
-    }
+        LocalDate today = LocalDate.now();
+        seedIncomes(demo, today);
+        seedExpenses(demo, today);
+        seedBudgetGoals(demo);
+        seedRecurring(demo, today);
 
-    // ── Seed data (shared between free and pro) ────────────────────────────────
-
-    private void seedTransactions(User user) {
-        seedIncomes(user, LocalDate.now());
-        seedExpenses(user, LocalDate.now());
+        log.info("Demo data reset successfully for user: {}", DEMO_EMAIL);
+        return DEMO_EMAIL;
     }
 
     private void seedIncomes(User user, LocalDate today) {
         List<Income> incomes = new ArrayList<>();
         List<Object[]> rows = List.of(
-                new Object[]{"Monthly Salary",    "Salary",      5500.00, 0},
-                new Object[]{"Monthly Salary",    "Salary",      5500.00, 1},
-                new Object[]{"Monthly Salary",    "Salary",      5500.00, 2},
-                new Object[]{"Monthly Salary",    "Salary",      5500.00, 3},
-                new Object[]{"Monthly Salary",    "Salary",      5500.00, 4},
-                new Object[]{"Monthly Salary",    "Salary",      5500.00, 5},
-                new Object[]{"Freelance Project", "Freelance",   1200.00, 0},
-                new Object[]{"Freelance Project", "Freelance",    800.00, 2},
-                new Object[]{"Stock Dividends",   "Investment",   350.00, 1},
-                new Object[]{"Stock Dividends",   "Investment",   350.00, 4},
-                new Object[]{"Tax Refund",        "Other",        920.00, 3}
+                new Object[]{"Monthly Salary",   "Salary",     5500.00, 0},
+                new Object[]{"Monthly Salary",   "Salary",     5500.00, 1},
+                new Object[]{"Monthly Salary",   "Salary",     5500.00, 2},
+                new Object[]{"Monthly Salary",   "Salary",     5500.00, 3},
+                new Object[]{"Monthly Salary",   "Salary",     5500.00, 4},
+                new Object[]{"Monthly Salary",   "Salary",     5500.00, 5},
+                new Object[]{"Freelance Project","Freelance",  1200.00, 0},
+                new Object[]{"Freelance Project","Freelance",   800.00, 2},
+                new Object[]{"Stock Dividends",  "Investment",  350.00, 1},
+                new Object[]{"Stock Dividends",  "Investment",  350.00, 4},
+                new Object[]{"Tax Refund",       "Other",       920.00, 3}
         );
         for (Object[] row : rows) {
             Income i = new Income();
@@ -190,10 +152,10 @@ public class DemoDataService {
     private void seedRecurring(User user, LocalDate today) {
         List<RecurringTransaction> recurrings = new ArrayList<>();
         List<Object[]> rows = List.of(
-                new Object[]{"Monthly Salary", "Salary",        5500.00, RecurringTransaction.Type.INCOME,  RecurringTransaction.Frequency.MONTHLY},
-                new Object[]{"Netflix",        "Entertainment",   22.99, RecurringTransaction.Type.EXPENSE, RecurringTransaction.Frequency.MONTHLY},
-                new Object[]{"Opal Card",      "Transport",       80.00, RecurringTransaction.Type.EXPENSE, RecurringTransaction.Frequency.MONTHLY},
-                new Object[]{"Internet Bill",  "Bills",           79.00, RecurringTransaction.Type.EXPENSE, RecurringTransaction.Frequency.MONTHLY}
+                new Object[]{"Monthly Salary", "Salary",        5500.00, RecurringTransaction.Type.INCOME,   RecurringTransaction.Frequency.MONTHLY},
+                new Object[]{"Netflix",        "Entertainment",   22.99, RecurringTransaction.Type.EXPENSE,  RecurringTransaction.Frequency.MONTHLY},
+                new Object[]{"Opal Card",      "Transport",       80.00, RecurringTransaction.Type.EXPENSE,  RecurringTransaction.Frequency.MONTHLY},
+                new Object[]{"Internet Bill",  "Bills",           79.00, RecurringTransaction.Type.EXPENSE,  RecurringTransaction.Frequency.MONTHLY}
         );
         for (Object[] row : rows) {
             RecurringTransaction rt = new RecurringTransaction();

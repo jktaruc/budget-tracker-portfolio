@@ -1,6 +1,8 @@
 import axios from "axios";
 
 const api = axios.create({
+    // On Render: VITE_API_BASE_URL = "https://budget-tracker-backend-n5jp.onrender.com/api"
+    // Locally:   VITE_API_BASE_URL is unset → falls back to "/api" → Nginx proxies to backend
     baseURL: import.meta.env.VITE_API_BASE_URL || "/api",
 });
 
@@ -26,16 +28,6 @@ api.interceptors.response.use(
             return Promise.reject(error);
         }
 
-        // 402 Payment Required — user hit a pro gate
-        // Fire a custom DOM event so any component can show the PaywallModal
-        if (error.response?.status === 402) {
-            const feature = error.response.data?.message
-                ?.replace("' requires a Pro subscription.", "")
-                ?.replace("'", "") ?? "This feature";
-            window.dispatchEvent(new CustomEvent("paywall", { detail: { feature } }));
-            return Promise.reject(error);
-        }
-
         if (error.response?.status === 401 && !originalRequest._retry) {
             originalRequest._retry = true;
             const refreshToken = localStorage.getItem("refreshToken");
@@ -49,6 +41,7 @@ api.interceptors.response.use(
                     originalRequest.headers.Authorization = `Bearer ${data.accessToken}`;
                     return api(originalRequest);
                 } catch {
+                    // Refresh failed — clear session and send to login, not demo
                     localStorage.clear();
                     window.location.href = "/login";
                 }

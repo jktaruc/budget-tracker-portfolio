@@ -29,10 +29,6 @@ services:
       # Do NOT hardcode here in production — use a secrets manager or .env file (gitignored)
       JWT_SECRET: ${JWT_SECRET}
       CORS_ALLOWED_ORIGINS: http://localhost
-      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
-      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
-      STRIPE_PRICE_ID: ${STRIPE_PRICE_ID}
-      FRONTEND_URL: ${FRONTEND_URL}
       PORT: 8080
     ports:
       - "8080:8080"
