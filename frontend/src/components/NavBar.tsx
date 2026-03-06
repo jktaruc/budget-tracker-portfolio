@@ -3,18 +3,22 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import api from "../api/api";
 import ImportModal from "./ImportModal";
+import PlanBadge from "./PlanBadge";
+import { useSubscription } from "../context/SubscriptionContext";
 import "../styles/NavBar.css";
 
-const DEMO_EMAIL = "demo@budgettracker.com";
+const DEMO_FREE_EMAIL = "demo@budgettracker.com";
+const DEMO_PRO_EMAIL  = "demo-pro@budgettracker.com";
 
 export default function Navbar() {
     const location = useLocation();
     const { user, logout, storeSession } = useAuth();
+    const { isPro } = useSubscription();
     const navigate = useNavigate();
-    const isDemo = user?.email === DEMO_EMAIL;
+    const isDemo = user?.email === DEMO_FREE_EMAIL || user?.email === DEMO_PRO_EMAIL;
 
     const [importOpen, setImportOpen] = useState(false);
-    const [menuOpen, setMenuOpen] = useState(false);
+    const [menuOpen,   setMenuOpen]   = useState(false);
 
     const closeMenu = () => setMenuOpen(false);
 
@@ -23,8 +27,9 @@ export default function Navbar() {
     const handleResetDemo = async () => {
         closeMenu();
         if (!window.confirm("Reset demo data? All changes will be lost.")) return;
+        const endpoint = user?.email === DEMO_PRO_EMAIL ? "/demo/reset-pro" : "/demo/reset";
         try {
-            const { data } = await api.post("/demo/reset");
+            const { data } = await api.post(endpoint);
             storeSession(data);
             window.location.href = "/";
         } catch (err) {
@@ -44,8 +49,8 @@ export default function Navbar() {
             a.click();
             URL.revokeObjectURL(url);
         } catch (err) {
+            // 402 handled globally by Axios interceptor — no extra handling needed here
             console.error("Export failed", err);
-            alert("Export failed. Please try again.");
         }
     };
 
@@ -61,14 +66,12 @@ export default function Navbar() {
 
     return (
         <>
-            {/* ── Top bar ──────────────────────────────────────────────── */}
             <nav className="navbar">
                 <div className="navbar-container">
                     <div className="navbar-brand">
                         <h1>💰 Budget Tracker</h1>
                     </div>
 
-                    {/* Desktop nav links */}
                     <div className="navbar-links">
                         {navLink("/", "📊 Dashboard")}
                         {navLink("/summary", "📈 Summary")}
@@ -76,14 +79,18 @@ export default function Navbar() {
                         {navLink("/recurring", "🔁 Recurring")}
                     </div>
 
-                    {/* Desktop user actions */}
                     <div className="navbar-user">
-                        <button className="navbar-import" onClick={() => setImportOpen(true)} title="Import CSV">
-                            📤 Import
-                        </button>
-                        <button className="navbar-export" onClick={handleExport} title="Export CSV">
-                            📥 Export
-                        </button>
+                        {isPro && (
+                            <>
+                                <button className="navbar-import" onClick={() => setImportOpen(true)} title="Import CSV">
+                                    📤 Import
+                                </button>
+                                <button className="navbar-export" onClick={handleExport} title="Export CSV">
+                                    📥 Export
+                                </button>
+                            </>
+                        )}
+                        <PlanBadge />
                         {isDemo && (
                             <button className="navbar-reset-demo" onClick={handleResetDemo}>
                                 🔄 Reset Demo
@@ -95,20 +102,16 @@ export default function Navbar() {
                         </button>
                     </div>
 
-                    {/* Mobile hamburger */}
                     <button
                         className={`navbar-hamburger ${menuOpen ? "open" : ""}`}
                         onClick={() => setMenuOpen(o => !o)}
                         aria-label="Toggle menu"
                         aria-expanded={menuOpen}
                     >
-                        <span />
-                        <span />
-                        <span />
+                        <span /><span /><span />
                     </button>
                 </div>
 
-                {/* Mobile drawer — rendered inside <nav> so it stays below the bar */}
                 <div className={`navbar-drawer ${menuOpen ? "open" : ""}`}>
                     {navLink("/", "📊 Dashboard")}
                     {navLink("/summary", "📈 Summary")}
@@ -116,12 +119,16 @@ export default function Navbar() {
                     {navLink("/recurring", "🔁 Recurring")}
 
                     <div className="navbar-drawer-actions">
-                        <button className="navbar-import" onClick={() => { closeMenu(); setImportOpen(true); }}>
-                            📤 Import CSV
-                        </button>
-                        <button className="navbar-export" onClick={handleExport}>
-                            📥 Export CSV
-                        </button>
+                        {isPro && (
+                            <>
+                                <button className="navbar-import" onClick={() => { closeMenu(); setImportOpen(true); }}>
+                                    📤 Import CSV
+                                </button>
+                                <button className="navbar-export" onClick={handleExport}>
+                                    📥 Export CSV
+                                </button>
+                            </>
+                        )}
                         {isDemo && (
                             <button className="navbar-reset-demo" onClick={handleResetDemo}>
                                 🔄 Reset Demo

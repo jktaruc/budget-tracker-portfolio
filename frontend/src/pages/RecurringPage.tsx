@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { Link } from "react-router-dom";
 import api from "../api/api";
 import CategorySelect from "../components/CategorySelect";
 import { getTodayDate } from "../utils/date-utils";
@@ -31,6 +32,7 @@ const emptyForm: FormState = {
 export default function RecurringPage() {
     const [items, setItems] = useState<RecurringTransaction[]>([]);
     const [loading, setLoading] = useState(true);
+    const [paywalled, setPaywalled] = useState(false);
     const [showForm, setShowForm] = useState(false);
     const [form, setForm] = useState<FormState>(emptyForm);
     const [saving, setSaving] = useState(false);
@@ -39,8 +41,9 @@ export default function RecurringPage() {
         try {
             const { data } = await api.get<RecurringTransaction[]>("/recurring");
             setItems(data);
-        } catch (err) {
-            console.error(err);
+        } catch (err: any) {
+            if (err?.response?.status === 402) setPaywalled(true);
+            else console.error(err);
         } finally {
             setLoading(false);
         }
@@ -86,6 +89,17 @@ export default function RecurringPage() {
         FREQUENCIES.find(x => x.value === f)?.label ?? f;
 
     if (loading) return <div className="loading">Loading recurring transactions...</div>;
+
+    if (paywalled) return (
+        <div className="page-container">
+            <div className="summary-paywall">
+                <div className="summary-paywall-icon">🔁</div>
+                <h2>Recurring Transactions is a Pro feature</h2>
+                <p>Automate your regular income and expenses so they're tracked without manual entry.</p>
+                <Link to="/billing" className="summary-paywall-btn">Upgrade to Pro</Link>
+            </div>
+        </div>
+    );
 
     return (
         <div className="page-container">

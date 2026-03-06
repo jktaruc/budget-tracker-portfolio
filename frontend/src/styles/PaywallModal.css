@@ -1,0 +1,144 @@
+.paywall-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.paywall-modal {
+  background: #fff;
+  border-radius: 12px;
+  padding: 2rem;
+  max-width: 580px;
+  width: 100%;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.paywall-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #64748b;
+  line-height: 1;
+  padding: 0.25rem 0.5rem;
+}
+.paywall-close:hover { color: #0f172a; }
+
+.paywall-icon {
+  font-size: 2.5rem;
+  text-align: center;
+  margin-bottom: 0.5rem;
+}
+
+.paywall-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0f172a;
+  text-align: center;
+  margin: 0 0 0.25rem;
+}
+
+.paywall-subtitle {
+  color: #64748b;
+  text-align: center;
+  margin: 0 0 1.5rem;
+}
+
+.paywall-features {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.paywall-plan {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.paywall-plan.highlighted {
+  border-color: #0d9488;
+  box-shadow: 0 0 0 2px #0d9488;
+}
+
+.paywall-plan-header {
+  padding: 0.75rem 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.9rem;
+}
+
+.paywall-plan-header.free {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.paywall-plan-header.pro {
+  background: #0d9488;
+  color: #fff;
+}
+
+.paywall-plan ul {
+  list-style: none;
+  margin: 0;
+  padding: 0.75rem 1rem;
+}
+
+.paywall-plan li {
+  font-size: 0.85rem;
+  color: #334155;
+  padding: 0.2rem 0;
+}
+
+.paywall-btn-upgrade {
+  width: 100%;
+  padding: 0.875rem;
+  background: #0d9488;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.paywall-btn-upgrade:hover:not(:disabled) { background: #0f766e; }
+.paywall-btn-upgrade:disabled { opacity: 0.7; cursor: not-allowed; }
+
+.paywall-error {
+  color: #ef4444;
+  font-size: 0.875rem;
+  text-align: center;
+  margin-bottom: 0.75rem;
+}
+
+.paywall-note {
+  font-size: 0.78rem;
+  color: #94a3b8;
+  text-align: center;
+  margin-top: 0.75rem;
+}
+
+.paywall-note code {
+  background: #f1f5f9;
+  padding: 0.1rem 0.3rem;
+  border-radius: 3px;
+  font-family: monospace;
+}
+
+@media (max-width: 480px) {
+  .paywall-features { grid-template-columns: 1fr; }
+}

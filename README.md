@@ -1,6 +1,6 @@
 # Budget Tracker
 
-A full-stack personal finance application for tracking income and expenses, setting spending limits, automating recurring transactions, and visualising financial trends.
+A full-stack personal finance application for tracking income and expenses, setting spending limits, automating recurring transactions, and visualising financial trends. Includes a Stripe-powered subscription system with Free and Pro plans.
 
 **Live demo:** https://budget-tracker-frontend-5o9w.onrender.com
 
@@ -16,6 +16,7 @@ A full-stack personal finance application for tracking income and expenses, sett
 | Backend   | Spring Boot 3.3, Java 17                         |
 | Database  | PostgreSQL 16                                    |
 | Auth      | JWT (access + refresh tokens), BCrypt            |
+| Payments  | Stripe Checkout, Stripe Webhooks                 |
 | API Docs  | SpringDoc OpenAPI (Swagger UI)                   |
 | Testing   | JUnit 5, Mockito, MockMvc, H2 (in-memory)        |
 | Deploy    | Render (Docker backend, static frontend + Nginx) |
@@ -23,6 +24,16 @@ A full-stack personal finance application for tracking income and expenses, sett
 ---
 
 ## Features
+
+### Subscription & Billing
+- Free plan with core expense and income tracking
+- Pro plan ($5/month) unlocks Spending Limits, Financial Summary, Recurring Transactions, and CSV Import/Export
+- Stripe Checkout for secure payment — users are never redirected to a custom payment form
+- Auto-renewing monthly subscription handled entirely by Stripe
+- Cancel at period end — users stay on Pro until their billing cycle expires, then downgrade automatically
+- Webhook-driven plan upgrades and downgrades (`checkout.session.completed`, `customer.subscription.deleted`, `invoice.payment_failed`)
+- Per-endpoint plan gate (`requirePro`) returns HTTP 402, triggering a paywall modal on the frontend
+- Plan badge in the navbar links to the billing page; turns amber when cancellation is scheduled
 
 ### Transactions
 - Add, edit, and delete expenses and income
@@ -67,9 +78,10 @@ A full-stack personal finance application for tracking income and expenses, sett
 - Silent token refresh on the frontend — the user is only redirected to login when the refresh itself fails
 
 ### Demo Mode
-- Public demo account with pre-seeded Australian transaction data
-- One-click reset restores the original demo data and returns a fresh JWT so the UI is immediately usable
-- IP-based rate limiting on the reset endpoint to prevent abuse
+- Two demo accounts — Free and Pro — each with pre-seeded Australian transaction data
+- One-click reset per plan restores the original data and returns a fresh JWT
+- Pro demo includes spending limits, recurring transactions, and financial summary data pre-populated
+- IP-based rate limiting on the reset endpoints to prevent abuse
 
 ---
 
@@ -79,7 +91,7 @@ A full-stack personal finance application for tracking income and expenses, sett
 ┌──────────────────────────────────────────────────────────────────┐
 │  Browser                                                         │
 │  React 19 + TypeScript (Vite, Recharts)                          │
-│  Axios interceptors → silent JWT refresh on 401                  │
+│  Axios interceptors → silent JWT refresh on 401, paywall on 402  │
 └─────────────────────┬────────────────────────────────────────────┘
                       │ HTTPS  /api/**
 ┌─────────────────────▼────────────────────────────────────────────┐
@@ -87,15 +99,18 @@ A full-stack personal finance application for tracking income and expenses, sett
 │                                                                  │
 │  JwtAuthFilter → SecurityConfig → Controllers → Services         │
 │                                                                  │
+│  SubscriptionService ← plan gate (requirePro → 402)              │
 │  UserScopedServiceBase  ←  shared ownership + user-lookup        │
 │  GlobalExceptionHandler ←  unified error responses               │
-└─────────────────────┬────────────────────────────────────────────┘
-                      │ JPA / Hibernate
-┌─────────────────────▼────────────────────────────────────────────┐
-│  PostgreSQL 16  (Render managed database)                        │
-│  users · expenses · incomes · categories                         │
-│  spending_limits · recurring_transactions                        │
-└──────────────────────────────────────────────────────────────────┘
+└──────────┬──────────────────────────────────────┬────────────────┘
+           │ JPA / Hibernate                       │ Stripe SDK
+┌──────────▼──────────────────────┐   ┌───────────▼────────────────┐
+│  PostgreSQL 16                  │   │  Stripe                    │
+│  users · expenses · incomes     │   │  Checkout Sessions         │
+│  categories · spending_limits   │   │  Subscriptions             │
+│  recurring_transactions         │   │  Webhooks → /stripe/webhook│
+│  subscriptions                  │   └────────────────────────────┘
+└─────────────────────────────────┘
 ```
 
 ---
@@ -103,6 +118,12 @@ A full-stack personal finance application for tracking income and expenses, sett
 ## Technical Decisions
 
 A few non-obvious choices made during development and why:
+
+**Stripe webhook deserialization with `deserializeUnsafe()`**
+The Stripe Java SDK validates the event payload against its own API version. When Stripe's API version is newer than the SDK version, fields like `branding_settings` or `wallet_options` cause `getObject()` to return empty rather than throwing. Using `deserializeUnsafe()` bypasses the version check and deserializes directly from the raw JSON — safe here because the payload signature is already verified by `Webhook.constructEvent` before deserialization is attempted.
+
+**Cancel at period end instead of immediate cancellation**
+Immediate cancellation (`stripe.cancel()`) terminates the subscription right away and would require prorating refunds. Setting `cancelAtPeriodEnd = true` instead tells Stripe to stop charging at the next renewal date while keeping the subscription active. The backend stores a `CANCELLING` status so the frontend can show "Pro until [date]" without polling Stripe on every request. When the period ends, Stripe fires `customer.subscription.deleted` and the backend downgrades the user automatically.
 
 **Refresh token versioning instead of a blocklist**
 Logout needs to invalidate all outstanding refresh tokens without storing them. Adding a `refresh_token_version` integer to the `users` table and embedding it as a JWT claim (`rtv`) means any token issued before a logout is rejected on next use — zero extra storage and no cache dependency.
@@ -138,7 +159,7 @@ budget-tracker/
 │       │   ├── controller/         # REST endpoints
 │       │   ├── dto/                # API response shapes (raw entities are never returned)
 │       │   ├── entity/             # JPA entities mapped to DB tables
-│       │   ├── exception/          # GlobalExceptionHandler + custom exceptions
+│       │   ├── exception/          # GlobalExceptionHandler + custom exceptions (incl. PlanGateException)
 │       │   ├── filter/             # JwtAuthFilter, DemoRateLimitFilter
 │       │   ├── repository/         # Spring Data JPA interfaces (includes custom @Query methods)
 │       │   ├── security/           # JwtUtil, UserDetailsServiceImpl
@@ -150,10 +171,12 @@ budget-tracker/
         ├── api/                    # Axios instance with request/response interceptors
         ├── components/             # Reusable UI components
         │   ├── summary/            # Chart and stats sub-components
-        │   └── pagination/         # Pagination control
-        ├── context/                # AuthContext (user session state)
+        │   ├── pagination/         # Pagination control
+        │   ├── PaywallModal.tsx    # Global 402 upgrade modal
+        │   └── PlanBadge.tsx       # Navbar plan indicator linking to /billing
+        ├── context/                # AuthContext, SubscriptionContext
         ├── hooks/                  # useCategories, useTransactionList
-        ├── pages/                  # Route-level views (Dashboard, Summary, etc.)
+        ├── pages/                  # Route-level views (Dashboard, Summary, Billing, etc.)
         ├── styles/                 # Component CSS files
         ├── types/                  # TypeScript interfaces
         └── utils/                  # date-utils and other helpers
@@ -207,6 +230,9 @@ export DB_URL=jdbc:postgresql://localhost:5432/budget_tracker
 export DB_USERNAME=your_username
 export DB_PASSWORD=your_password
 export JWT_SECRET=any-long-base64-random-string
+export STRIPE_SECRET_KEY=sk_test_...
+export STRIPE_WEBHOOK_SECRET=whsec_...   # from: stripe listen --forward-to localhost:8080/api/stripe/webhook
+export STRIPE_PRICE_ID=price_...
 ```
 
 ```bash
@@ -242,6 +268,10 @@ The Vite dev server proxies all `/api` requests to `http://localhost:8080` autom
 | `DB_USERNAME`          | Yes          | Database user                                                       |
 | `DB_PASSWORD`          | Yes          | Database password                                                   |
 | `JWT_SECRET`           | Yes          | Base64-encoded secret for signing JWTs — use a long random string   |
+| `STRIPE_SECRET_KEY`    | Yes          | Stripe secret key (`sk_live_...` or `sk_test_...`)                  |
+| `STRIPE_WEBHOOK_SECRET`| Yes          | Stripe webhook signing secret (`whsec_...`) — use CLI secret locally|
+| `STRIPE_PRICE_ID`      | Yes          | Stripe Price ID for the Pro monthly plan (`price_...`)              |
+| `FRONTEND_URL`         | Production   | Frontend origin used for Stripe success/cancel redirect URLs        |
 | `CORS_ALLOWED_ORIGINS` | Production   | Comma-separated list of allowed frontend origins                    |
 | `PORT`                 | Production   | Server port (defaults to `8080`)                                    |
 | `SELF_URL`             | Production   | Backend's own public URL — enables the keep-alive ping              |
@@ -301,9 +331,18 @@ Pass it as: `Authorization: Bearer <accessToken>`
 
 ### Financial Summary
 
-| Method | Endpoint                 | Description                                                    |
-|--------|--------------------------|----------------------------------------------------------------|
-| GET    | `/api/summary/financial` | Full summary (`?startDate`, `?endDate`, `?projected=true`)     |
+| Method | Endpoint        | Description                                                          |
+|--------|-----------------|----------------------------------------------------------------------|
+| GET    | `/api/summary`  | Full summary (`?startDate`, `?endDate`, `?projected=true`) — **Pro** |
+
+### Subscription & Billing
+
+| Method | Endpoint                       | Auth | Description                                        |
+|--------|--------------------------------|------|----------------------------------------------------|
+| GET    | `/api/subscription/status`     | Yes  | Returns current plan, status, and period end date  |
+| POST   | `/api/subscription/checkout`   | Yes  | Creates a Stripe Checkout Session, returns `url`   |
+| POST   | `/api/subscription/cancel`     | Yes  | Schedules cancellation at period end               |
+| POST   | `/api/stripe/webhook`          | No   | Stripe webhook receiver (signature-verified)       |
 
 ### Spending Limits
 
@@ -353,9 +392,10 @@ Maximum file size: 5 MB. Invalid rows are skipped and reported individually in t
 
 ### Demo
 
-| Method | Endpoint          | Auth | Description                                      |
-|--------|-------------------|------|--------------------------------------------------|
-| POST   | `/api/demo/reset` | No   | Reset demo account to seed data and return a JWT |
+| Method | Endpoint              | Auth | Description                                      |
+|--------|-----------------------|------|--------------------------------------------------|
+| POST   | `/api/demo/reset`     | No   | Reset Free demo account to seed data, return JWT |
+| POST   | `/api/demo/reset-pro` | No   | Reset Pro demo account to seed data, return JWT  |
 
 Rate limited to 5 requests per 60 seconds per IP.
 

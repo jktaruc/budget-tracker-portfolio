@@ -143,3 +143,70 @@
     .demo-hero-content h1 { font-size: 2rem; }
     .demo-features { grid-template-columns: 1fr; }
 }
+
+.demo-plans {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin: 2rem 0;
+}
+
+.demo-plan-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 1.5rem;
+}
+
+.demo-plan-card--pro {
+    border-color: #0d9488;
+    box-shadow: 0 0 0 2px #0d9488;
+}
+
+.demo-plan-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.demo-plan-header h3 { margin: 0; font-size: 1.1rem; color: #0f172a; }
+.demo-plan-price { font-size: 0.9rem; color: #64748b; font-weight: 600; }
+
+.demo-plan-features {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 1.25rem;
+}
+
+.demo-plan-features li {
+    font-size: 0.875rem;
+    color: #334155;
+    padding: 0.2rem 0;
+}
+
+.demo-btn-link {
+    background: none;
+    border: none;
+    color: #0d9488;
+    cursor: pointer;
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+    text-decoration: underline;
+}
+
+.pro-tag {
+    display: inline-block;
+    background: #0d9488;
+    color: #fff;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
+    vertical-align: middle;
+    margin-left: 0.3rem;
+}
+
+@media (max-width: 540px) {
+    .demo-plans { grid-template-columns: 1fr; }
+}
