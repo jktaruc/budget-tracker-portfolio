@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import api from "../api/api";
 import FinancialStatsCards from "../components/summary/FinancialStatsCards";
 import IncomeVsExpenseChart from "../components/summary/IncomeVsExpenseChart";
@@ -22,6 +23,7 @@ export default function Summary() {
     const [summary, setSummary] = useState<FullSummaryResponse | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [paywalled, setPaywalled] = useState(false);
     const [projected, setProjected] = useState(false);
     const [dateRange, setDateRange] = useState<DateRange>({
         startDate: getDateMonthsAgo(6),
@@ -32,15 +34,20 @@ export default function Summary() {
         const fetchSummary = async () => {
             try {
                 setLoading(true);
+                setPaywalled(false);
                 const { data } = await api.get<FullSummaryResponse>(
-                    "/summary/financial",
+                    "/summary",
                     { params: { startDate: dateRange.startDate, endDate: dateRange.endDate, projected } }
                 );
                 setSummary(data);
                 setError(null);
-            } catch (err) {
-                setError("Failed to load financial summary");
-                console.error(err);
+            } catch (err: any) {
+                if (err?.response?.status === 402) {
+                    setPaywalled(true);
+                } else {
+                    setError("Failed to load financial summary");
+                    console.error(err);
+                }
             } finally {
                 setLoading(false);
             }
@@ -49,6 +56,18 @@ export default function Summary() {
     }, [dateRange, projected]);
 
     if (loading) return <div className="loading">Loading financial summary...</div>;
+
+    if (paywalled) return (
+        <div className="page-container">
+            <div className="summary-paywall">
+                <div className="summary-paywall-icon">📈</div>
+                <h2>Financial Summary is a Pro feature</h2>
+                <p>Get detailed insights into your spending, income trends, category breakdowns, and more.</p>
+                <Link to="/billing" className="summary-paywall-btn">Upgrade to Pro</Link>
+            </div>
+        </div>
+    );
+
     if (error)   return <div className="error">{error}</div>;
     if (!summary) return <div className="no-data">No data available</div>;
 

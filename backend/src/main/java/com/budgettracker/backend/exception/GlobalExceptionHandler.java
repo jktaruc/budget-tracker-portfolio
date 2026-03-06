@@ -76,4 +76,12 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(new ErrorResponse(500, "Internal Server Error", "An unexpected error occurred"));
     }
+
+    @ExceptionHandler(PlanGateException.class)
+    public ResponseEntity<ErrorResponse> handlePlanGate(PlanGateException ex) {
+        log.info("Plan gate triggered for feature: {}", ex.getFeature());
+        return ResponseEntity
+                .status(HttpStatus.PAYMENT_REQUIRED)  // 402
+                .body(new ErrorResponse(402, "Upgrade Required", ex.getMessage()));
+    }
 }
