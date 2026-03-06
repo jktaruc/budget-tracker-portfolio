@@ -1,0 +1,86 @@
+/* ExpenseList.css */
+
+.expense-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+    margin-top: 20px;
+}
+
+.expense-card {
+    position: relative;
+    padding: 16px;
+    padding-top: 40px; /* Space for action buttons */
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    background-color: #ffebee;
+    border: 2px solid #ef5350;
+    word-break: break-word;
+}
+
+.expense-card.fade-out {
+    opacity: 0;
+    transform: scale(0.95);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.expense-card h3 {
+    margin: 0 0 10px 0;
+    font-size: 1.05rem;
+    color: #333;
+}
+
+.expense-card p {
+    margin: 5px 0;
+    font-size: 0.9rem;
+    color: #555;
+}
+
+/* Action buttons container */
+.card-actions {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    display: flex;
+    gap: 4px;
+}
+
+.edit-btn,
+.expense-close-btn {
+    border: none;
+    background: rgba(255, 255, 255, 0.9);
+    font-size: 16px;
+    cursor: pointer;
+    color: #666;
+    line-height: 1;
+    width: 30px;
+    height: 30px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.edit-btn:hover {
+    background: white;
+    color: #667eea;
+    transform: scale(1.1);
+}
+
+.expense-close-btn:hover {
+    background: white;
+    color: #f44336;
+    transform: scale(1.1);
+}
+
+.no-expenses {
+    color: #666;
+    font-style: italic;
+}
+
+@media (max-width: 480px) {
+    .expense-grid {
+        grid-template-columns: 1fr;
+    }
+}

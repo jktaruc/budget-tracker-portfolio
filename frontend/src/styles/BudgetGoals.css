@@ -1,0 +1,184 @@
+.goals-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    gap: 12px;
+}
+
+.goals-add-btn {
+    padding: 10px 20px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    white-space: nowrap;
+}
+.goals-add-btn:hover { opacity: 0.9; }
+
+/* ── Form ───────────────────────────────────────────────────────────────── */
+
+.goals-form {
+    background: #f8f9ff;
+    border: 1px solid #e0e4ff;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 28px;
+}
+.goals-form h3 { margin: 0 0 16px; color: #333; }
+
+.goals-form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 16px;
+    align-items: flex-end;
+}
+
+.goals-form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.goals-form-field label { font-size: 0.85rem; font-weight: 600; color: #555; }
+.goals-form-field select,
+.goals-form-field input {
+    padding: 10px 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    outline: none;
+    width: 100%;
+    box-sizing: border-box;
+}
+.goals-form-field select:focus,
+.goals-form-field input:focus { border-color: #667eea; }
+
+.goals-save-btn {
+    padding: 10px 24px;
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    align-self: flex-end;
+    white-space: nowrap;
+}
+.goals-save-btn:disabled { opacity: 0.6; }
+
+.goals-empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: #888;
+}
+
+/* ── Cards grid ─────────────────────────────────────────────────────────── */
+
+.goals-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.goal-card {
+    background: white;
+    border: 1px solid #e8e8e8;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    transition: box-shadow 0.2s;
+}
+.goal-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+.goal-card.exceeded { border-color: #fca5a5; background: #fff8f8; }
+
+.goal-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+    gap: 8px;
+}
+.goal-card-header h3 { margin: 0 0 4px; font-size: 1.05rem; color: #1a1a2e; }
+.goal-period {
+    font-size: 0.75rem;
+    background: #f0f0f0;
+    color: #666;
+    padding: 2px 8px;
+    border-radius: 10px;
+    display: inline-block;
+}
+.goal-amounts { text-align: right; flex-shrink: 0; }
+.goal-spent { font-size: 1.15rem; font-weight: 700; color: #1a1a2e; }
+.goal-limit { font-size: 0.9rem; color: #999; }
+
+.goal-bar-bg {
+    height: 8px;
+    background: #f0f0f0;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 12px;
+}
+.goal-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.4s ease;
+}
+
+.goal-card-footer {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.goal-status { font-size: 0.85rem; flex: 1; }
+.goal-status.ok { color: #16a34a; }
+.goal-status.warning { color: #ea580c; }
+.goal-status.over { color: #dc2626; }
+.goal-pct { font-weight: 700; color: #555; font-size: 0.9rem; }
+.goal-delete-btn {
+    background: none;
+    border: none;
+    color: #ccc;
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: color 0.2s;
+}
+.goal-delete-btn:hover { color: #ef4444; }
+
+.goal-window {
+    display: block;
+    font-size: 11px;
+    color: #9ca3af;
+    margin-top: 2px;
+    font-style: italic;
+}
+
+.goals-select {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+/* ── Mobile ─────────────────────────────────────────────────────────────── */
+
+@media (max-width: 600px) {
+    .goals-form-row {
+        grid-template-columns: 1fr;
+    }
+
+    .goals-save-btn {
+        width: 100%;
+        padding: 12px;
+        text-align: center;
+    }
+
+    .goals-grid {
+        grid-template-columns: 1fr;
+    }
+}

@@ -1,0 +1,185 @@
+.recurring-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    gap: 12px;
+}
+
+.recurring-add-btn {
+    padding: 10px 20px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+/* ── Form ───────────────────────────────────────────────────────────────── */
+
+.recurring-form {
+    background: #f8f9ff;
+    border: 1px solid #e0e4ff;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 28px;
+}
+.recurring-form h3 { margin: 0 0 16px; }
+
+.recurring-type-toggle {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+.recurring-type-toggle button {
+    padding: 8px 20px;
+    border: 2px solid #e0e0e0;
+    background: white;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s;
+    flex: 1;
+}
+.recurring-type-toggle button.active.expense { border-color: #ef4444; background: #fff0f0; color: #dc2626; }
+.recurring-type-toggle button.active.income  { border-color: #22c55e; background: #f0fff4; color: #16a34a; }
+
+.recurring-form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.recurring-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.recurring-field label { font-size: 0.85rem; font-weight: 600; color: #555; }
+.recurring-field input,
+.recurring-field select {
+    padding: 10px 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    outline: none;
+    width: 100%;
+    box-sizing: border-box;
+}
+.recurring-field input:focus,
+.recurring-field select:focus { border-color: #667eea; }
+
+.recurring-save-btn {
+    padding: 10px 24px;
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+}
+.recurring-save-btn:disabled { opacity: 0.6; }
+
+.recurring-empty { text-align: center; padding: 60px 20px; color: #888; }
+
+/* ── List items ─────────────────────────────────────────────────────────── */
+
+.recurring-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.recurring-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: white;
+    border: 1px solid #e8e8e8;
+    border-radius: 12px;
+    padding: 14px 18px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    transition: opacity 0.2s;
+}
+.recurring-item.inactive { opacity: 0.5; }
+
+.recurring-type-badge { font-size: 1.5rem; flex-shrink: 0; }
+
+.recurring-info { flex: 1; min-width: 0; }
+.recurring-info h3 {
+    margin: 0 0 4px;
+    font-size: 1rem;
+    color: #1a1a2e;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.recurring-meta { font-size: 0.8rem; color: #888; }
+.recurring-last { display: block; font-size: 0.75rem; color: #aaa; margin-top: 2px; }
+
+.recurring-amount { text-align: right; flex-shrink: 0; }
+.income-amount  { display: block; font-size: 1rem; font-weight: 700; color: #16a34a; }
+.expense-amount { display: block; font-size: 1rem; font-weight: 700; color: #dc2626; }
+.recurring-freq { font-size: 0.75rem; color: #aaa; text-transform: lowercase; }
+
+.recurring-actions { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
+
+.recurring-toggle {
+    background: none;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 5px 9px;
+    cursor: pointer;
+    font-size: 1rem;
+}
+.recurring-delete {
+    background: none;
+    border: none;
+    color: #ccc;
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 5px 9px;
+    transition: color 0.2s;
+}
+.recurring-delete:hover { color: #ef4444; }
+
+/* ── Mobile ─────────────────────────────────────────────────────────────── */
+
+@media (max-width: 600px) {
+    .recurring-form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .recurring-save-btn {
+        width: 100%;
+        padding: 12px;
+        text-align: center;
+    }
+
+    /* Reorganise card: wrap amount + actions below the info */
+    .recurring-item {
+        flex-wrap: wrap;
+        padding: 12px 14px;
+        gap: 10px;
+    }
+
+    .recurring-info {
+        /* let it take the space next to the badge */
+        flex: 1;
+    }
+
+    .recurring-amount {
+        order: 3;
+        text-align: left;
+        flex: 1;
+    }
+
+    .recurring-actions {
+        order: 4;
+        justify-content: flex-end;
+    }
+}
