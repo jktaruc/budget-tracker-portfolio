@@ -1,0 +1,58 @@
+services:
+  - name: budget-tracker-backend
+    type: web
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
+    region: singapore
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: DB_HOST
+        fromDatabase:
+          name: budget-tracker-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: budget-tracker-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: budget-tracker-db
+          property: database
+      - key: DB_USERNAME
+        fromDatabase:
+          name: budget-tracker-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: budget-tracker-db
+          property: password
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CORS_ALLOWED_ORIGINS
+        value: https://<your-frontend>.onrender.com
+      - key: PORT
+        value: "8080"
+      - key: SELF_URL
+        value: https://<your-backend>.onrender.com
+
+  - name: budget-tracker-frontend
+    type: web
+    runtime: static
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
+    rootDir: frontend
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_BASE_URL
+        value: https://<your-backend>.onrender.com/api
+
+databases:
+  - name: budget-tracker-db
+    plan: free
+    region: singapore
+    databaseName: budget_tracker
