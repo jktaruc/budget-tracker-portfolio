@@ -35,7 +35,7 @@ export default function DemoPage() {
                 <div className="demo-hero-content">
                     <h1>💰 Budget Tracker</h1>
                     <p className="demo-tagline">
-                        Track expenses, set budget goals, and understand your finances — all in one place.
+                        Track expenses, set spending limits, and understand your finances — all in one place.
                     </p>
 
                     <div className="demo-features">
