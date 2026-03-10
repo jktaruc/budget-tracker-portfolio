@@ -7,6 +7,7 @@ import CategoryBreakdown from "../components/summary/CategoryBreakdown";
 import RecentTransactions from "../components/summary/RecentTransactions";
 import DateRangePicker from "../components/summary/DateRangePicker";
 import type { DateRange } from "../components/summary/DateRangePicker";
+import { useSubscription } from "../context/SubscriptionContext";
 import "../styles/Summary.css";
 import "../styles/Layout.css";
 import type { FinancialSummary, MonthlyData, Transaction, CategorySummary } from "../types";
@@ -20,11 +21,15 @@ interface FullSummaryResponse extends FinancialSummary {
 }
 
 export default function Summary() {
+    const { isPro } = useSubscription();
+
     const [summary, setSummary] = useState<FullSummaryResponse | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [paywalled, setPaywalled] = useState(false);
+
+    // projected is always false for FREE users — the toggle is hidden from them
     const [projected, setProjected] = useState(false);
+
     const [dateRange, setDateRange] = useState<DateRange>({
         startDate: getDateMonthsAgo(6),
         endDate: getTodayDate(),
@@ -34,40 +39,33 @@ export default function Summary() {
         const fetchSummary = async () => {
             try {
                 setLoading(true);
-                setPaywalled(false);
-                const { data } = await api.get<FullSummaryResponse>(
-                    "/summary",
-                    { params: { startDate: dateRange.startDate, endDate: dateRange.endDate, projected } }
-                );
+                // FREE users never send projected=true — the param is omitted entirely
+                const params: Record<string, string | boolean> = {
+                    startDate: dateRange.startDate,
+                    endDate: dateRange.endDate,
+                };
+                if (isPro && projected) {
+                    params.projected = true;
+                }
+                const { data } = await api.get<FullSummaryResponse>("/summary", { params });
                 setSummary(data);
                 setError(null);
             } catch (err: any) {
-                if (err?.response?.status === 402) {
-                    setPaywalled(true);
-                } else {
-                    setError("Failed to load financial summary");
-                    console.error(err);
-                }
+                setError("Failed to load financial summary");
+                console.error(err);
             } finally {
                 setLoading(false);
             }
         };
         fetchSummary();
-    }, [dateRange, projected]);
+    }, [dateRange, projected, isPro]);
+
+    // Reset projected when user loses PRO (e.g. subscription cancelled)
+    useEffect(() => {
+        if (!isPro) setProjected(false);
+    }, [isPro]);
 
     if (loading) return <div className="loading">Loading financial summary...</div>;
-
-    if (paywalled) return (
-        <div className="page-container">
-            <div className="summary-paywall">
-                <div className="summary-paywall-icon">📈</div>
-                <h2>Financial Summary is a Pro feature</h2>
-                <p>Get detailed insights into your spending, income trends, category breakdowns, and more.</p>
-                <Link to="/billing" className="summary-paywall-btn">Upgrade to Pro</Link>
-            </div>
-        </div>
-    );
-
     if (error)   return <div className="error">{error}</div>;
     if (!summary) return <div className="no-data">No data available</div>;
 
@@ -79,20 +77,31 @@ export default function Summary() {
                     <div className="summary-controls">
                         <DateRangePicker dateRange={dateRange} onChange={setDateRange} />
 
-                        <div className={`projected-toggle ${projected ? "active" : ""}`}>
-                            <span className="projected-toggle-label">
-                                {projected ? "📈 Projected" : "📊 Actual"}
-                            </span>
-                            <button
-                                className={`projected-toggle-btn ${projected ? "active" : ""}`}
-                                onClick={() => setProjected(p => !p)}
-                                title={projected
-                                    ? "Showing actual + projected recurring transactions. Click to show actual only."
-                                    : "Click to overlay projected recurring transactions"}
-                            >
-                                <span className={`projected-toggle-knob ${projected ? "active" : ""}`} />
-                            </button>
-                        </div>
+                        {/* Projected toggle is only shown to PRO users — it depends on recurring transactions */}
+                        {isPro && (
+                            <div className={`projected-toggle ${projected ? "active" : ""}`}>
+                                <span className="projected-toggle-label">
+                                    {projected ? "📈 Projected" : "📊 Actual"}
+                                </span>
+                                <button
+                                    className={`projected-toggle-btn ${projected ? "active" : ""}`}
+                                    onClick={() => setProjected(p => !p)}
+                                    title={projected
+                                        ? "Showing actual + projected recurring transactions. Click to show actual only."
+                                        : "Click to overlay projected recurring transactions"}
+                                >
+                                    <span className={`projected-toggle-knob ${projected ? "active" : ""}`} />
+                                </button>
+                            </div>
+                        )}
+
+                        {/* Subtle PRO upsell for FREE users — not a hard block */}
+                        {!isPro && (
+                            <Link to="/billing" className="projected-upsell">
+                                📈 <span>Projected cash flow</span>
+                                <span className="pro-badge">PRO</span>
+                            </Link>
+                        )}
                     </div>
                 </div>
 

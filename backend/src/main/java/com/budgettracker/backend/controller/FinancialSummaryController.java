@@ -26,9 +26,17 @@ public class FinancialSummaryController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             @RequestParam(defaultValue = "false") boolean projected,
             @AuthenticationPrincipal UserDetails userDetails) {
-        subscriptionService.requirePro(userDetails.getUsername(), "Financial Summary");
+
+        String email = userDetails.getUsername();
+
+        // Projected mode overlays recurring transactions — PRO only.
+        // The base summary (actual transactions) is available to all users.
+        if (projected) {
+            subscriptionService.requirePro(email, "Projected Cash Flow");
+        }
+
         return ResponseEntity.ok(
-                financialSummaryService.getFinancialSummary(startDate, endDate, userDetails.getUsername(), projected)
+                financialSummaryService.getFinancialSummary(startDate, endDate, email, projected)
         );
     }
 }
